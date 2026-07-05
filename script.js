@@ -42,7 +42,7 @@ const CONFIG = {
       title: "Messi Approves This Choice",
       text:
         "You chose Messi. Respect. Please enjoy a championship celebration.",
-      video: "./assets/video/messi-champions-10s.mp4",
+      video: "./assets/video/argentina-national.mp4",
     },
   },
   rsvp: {
@@ -144,6 +144,17 @@ function setupMusic() {
       elements.audioStatus.textContent = "Anthem could not load on this connection.";
     }
   });
+}
+
+function pauseBackgroundMusic() {
+  if (!CONFIG.music.enabled || !elements.matchAudio) return;
+  elements.matchAudio.pause();
+}
+
+function resumeBackgroundMusic() {
+  if (!CONFIG.music.enabled || !elements.matchAudio) return;
+  elements.matchAudio.volume = clamp(CONFIG.music.startVolume / 100, 0, 1);
+  elements.matchAudio.play().catch(() => {});
 }
 
 function applySectionFlags() {
@@ -385,18 +396,27 @@ function applyChoice(team) {
     elements.reactionStatus.textContent = "Highlight ready.";
   };
   elements.reactionVideo.onplaying = () => {
+    pauseBackgroundMusic();
     elements.reactionStatus.classList.add("hidden");
+  };
+  elements.reactionVideo.onpause = () => {
+    resumeBackgroundMusic();
+  };
+  elements.reactionVideo.onended = () => {
+    resumeBackgroundMusic();
   };
   elements.reactionVideo.onwaiting = () => {
     elements.reactionStatus.textContent = "Loading highlight...";
     elements.reactionStatus.classList.remove("hidden");
   };
   elements.reactionVideo.onerror = () => {
+    resumeBackgroundMusic();
     elements.reactionStatus.textContent = "Tap below if the video does not start.";
     elements.reactionStatus.classList.remove("hidden");
     elements.reactionOpen.classList.remove("hidden");
   };
   elements.reactionVideo.play().catch(() => {
+    resumeBackgroundMusic();
     elements.reactionStatus.textContent = "Tap play or open the video directly.";
     elements.reactionStatus.classList.remove("hidden");
     elements.reactionOpen.classList.remove("hidden");
