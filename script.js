@@ -19,7 +19,7 @@ const CONFIG = {
     enabled: true,
     title: "Dai Dai",
     artist: "Shakira & Burna Boy",
-    src: "./assets/audio/dai-dai.mp3",
+    src: "./assets/audio/dai-dai-mobile.m4a",
     startVolume: 85,
   },
   sections: {
@@ -35,14 +35,14 @@ const CONFIG = {
       title: "Hard Luck, I'm With Argentina",
       text:
         "Supporting Egypt? Brave choice. Unfortunately I have already emotionally committed to Messi, so this rivalry is now official.",
-      video: "./assets/video/messi-furious.mp4",
+      video: "./assets/video/messi-furious-mobile.mp4",
     },
     argentina: {
       eyebrow: "Correct Football Decision",
       title: "Messi Approves This Choice",
       text:
         "You chose Messi. Respect. Please enjoy a championship celebration.",
-      video: "./assets/video/messi-champions.mp4",
+      video: "./assets/video/messi-champions-mobile.mp4",
     },
   },
   rsvp: {
@@ -62,6 +62,7 @@ const state = {
   dragging: false,
   introFinished: false,
   musicRequested: false,
+  mediaWarmed: false,
   selectedTeam: "",
   noIndex: 0,
 };
@@ -119,6 +120,7 @@ function setupMusic() {
   if (!CONFIG.music.enabled || !elements.matchAudio) return;
   elements.matchAudio.volume = clamp(CONFIG.music.startVolume / 100, 0, 1);
   elements.matchAudio.src = CONFIG.music.src;
+  elements.matchAudio.load();
 }
 
 function applySectionFlags() {
@@ -181,6 +183,7 @@ function setupPenaltyIntro() {
     if (state.introFinished) return;
     state.dragging = true;
     elements.ball.classList.add("dragging");
+    warmMedia();
     const rect = ballRect();
     dragOffset = {
       x: getPoint(event).x - rect.left,
@@ -327,6 +330,7 @@ function clearShotTrail() {
 
 function revealMainPage() {
   elements.page.classList.remove("hidden");
+  warmMedia();
   window.setTimeout(() => {
     elements.introShell.classList.add("hidden");
   }, 980);
@@ -345,11 +349,31 @@ function applyChoice(team) {
   elements.reactionEyebrow.textContent = result.eyebrow;
   elements.reactionTitle.textContent = result.title;
   elements.reactionText.textContent = result.text;
+  elements.reactionVideo.pause();
   elements.reactionVideo.src = result.video;
+  elements.reactionVideo.load();
   elements.reactionCard.classList.remove("hidden");
   elements.reactionVideo.currentTime = 0;
   elements.reactionVideo.play().catch(() => {});
   elements.reactionCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function warmMedia() {
+  if (state.mediaWarmed) return;
+  state.mediaWarmed = true;
+
+  if (elements.matchAudio) {
+    elements.matchAudio.load();
+  }
+
+  Object.values(CONFIG.choiceOutcomes).forEach((outcome) => {
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.muted = true;
+    video.playsInline = true;
+    video.src = outcome.video;
+    video.load();
+  });
 }
 
 function setupRsvp() {
