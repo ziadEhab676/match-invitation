@@ -56,10 +56,11 @@
       <div class="intro-status">
         <div class="attempts" id="attempts">Attempt 1 of 3</div>
         <div class="hint" id="hint">Drag up toward the goal</div>
+        <div class="media-status" id="audio-status">Anthem is getting ready.</div>
       </div>
     </div>
 
-    <audio id="match-audio" preload="metadata" loop>
+    <audio id="match-audio" preload="auto" loop>
       <source src="./assets/audio/dai-dai-mobile.m4a" type="audio/mp4" />
     </audio>
 
@@ -174,7 +175,11 @@
               <p id="reaction-text"></p>
             </div>
             <div class="reaction-media">
-              <video id="reaction-video" playsinline controls preload="metadata"></video>
+              <video id="reaction-video" playsinline controls preload="auto"></video>
+              <p class="media-status media-status-card hidden" id="reaction-status">Loading highlight...</p>
+              <a class="button button-secondary hidden" id="reaction-open" href="#" target="_blank" rel="noreferrer">
+                Open Video Directly
+              </a>
             </div>
           </article>
         </div>

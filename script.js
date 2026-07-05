@@ -42,7 +42,7 @@ const CONFIG = {
       title: "Messi Approves This Choice",
       text:
         "You chose Messi. Respect. Please enjoy a championship celebration.",
-      video: "./assets/video/messi-champions-mobile.mp4",
+      video: "./assets/video/messi-champions-10s.mp4",
     },
   },
   rsvp: {
@@ -78,6 +78,7 @@ const elements = {
   introMessage: document.getElementById("intro-message"),
   attempts: document.getElementById("attempts"),
   hint: document.getElementById("hint"),
+  audioStatus: document.getElementById("audio-status"),
   stage: document.getElementById("penalty-stage"),
   ball: document.getElementById("ball"),
   goalkeeper: document.getElementById("goalkeeper"),
@@ -92,6 +93,8 @@ const elements = {
   reactionTitle: document.getElementById("reaction-title"),
   reactionText: document.getElementById("reaction-text"),
   reactionVideo: document.getElementById("reaction-video"),
+  reactionStatus: document.getElementById("reaction-status"),
+  reactionOpen: document.getElementById("reaction-open"),
   days: document.getElementById("days"),
   hours: document.getElementById("hours"),
   minutes: document.getElementById("minutes"),
@@ -121,6 +124,26 @@ function setupMusic() {
   elements.matchAudio.volume = clamp(CONFIG.music.startVolume / 100, 0, 1);
   elements.matchAudio.src = CONFIG.music.src;
   elements.matchAudio.load();
+  elements.matchAudio.addEventListener("canplay", () => {
+    if (elements.audioStatus) {
+      elements.audioStatus.textContent = "Anthem is ready.";
+    }
+  });
+  elements.matchAudio.addEventListener("waiting", () => {
+    if (elements.audioStatus) {
+      elements.audioStatus.textContent = "Loading anthem...";
+    }
+  });
+  elements.matchAudio.addEventListener("playing", () => {
+    if (elements.audioStatus) {
+      elements.audioStatus.textContent = "Anthem is playing.";
+    }
+  });
+  elements.matchAudio.addEventListener("error", () => {
+    if (elements.audioStatus) {
+      elements.audioStatus.textContent = "Anthem could not load on this connection.";
+    }
+  });
 }
 
 function applySectionFlags() {
@@ -350,11 +373,34 @@ function applyChoice(team) {
   elements.reactionTitle.textContent = result.title;
   elements.reactionText.textContent = result.text;
   elements.reactionVideo.pause();
+  elements.reactionStatus.textContent = "Loading highlight...";
+  elements.reactionStatus.classList.remove("hidden");
+  elements.reactionOpen.href = result.video;
+  elements.reactionOpen.classList.add("hidden");
   elements.reactionVideo.src = result.video;
   elements.reactionVideo.load();
   elements.reactionCard.classList.remove("hidden");
   elements.reactionVideo.currentTime = 0;
-  elements.reactionVideo.play().catch(() => {});
+  elements.reactionVideo.oncanplay = () => {
+    elements.reactionStatus.textContent = "Highlight ready.";
+  };
+  elements.reactionVideo.onplaying = () => {
+    elements.reactionStatus.classList.add("hidden");
+  };
+  elements.reactionVideo.onwaiting = () => {
+    elements.reactionStatus.textContent = "Loading highlight...";
+    elements.reactionStatus.classList.remove("hidden");
+  };
+  elements.reactionVideo.onerror = () => {
+    elements.reactionStatus.textContent = "Tap below if the video does not start.";
+    elements.reactionStatus.classList.remove("hidden");
+    elements.reactionOpen.classList.remove("hidden");
+  };
+  elements.reactionVideo.play().catch(() => {
+    elements.reactionStatus.textContent = "Tap play or open the video directly.";
+    elements.reactionStatus.classList.remove("hidden");
+    elements.reactionOpen.classList.remove("hidden");
+  });
   elements.reactionCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
@@ -368,7 +414,7 @@ function warmMedia() {
 
   Object.values(CONFIG.choiceOutcomes).forEach((outcome) => {
     const video = document.createElement("video");
-    video.preload = "metadata";
+    video.preload = "auto";
     video.muted = true;
     video.playsInline = true;
     video.src = outcome.video;
@@ -428,7 +474,14 @@ function requestMusicStart() {
   state.musicRequested = true;
   elements.matchAudio.volume = clamp(CONFIG.music.startVolume / 100, 0, 1);
   elements.matchAudio.currentTime = 0;
-  elements.matchAudio.play().catch(() => {});
+  if (elements.audioStatus) {
+    elements.audioStatus.textContent = "Loading anthem...";
+  }
+  elements.matchAudio.play().catch(() => {
+    if (elements.audioStatus) {
+      elements.audioStatus.textContent = "Tap again if the anthem does not start.";
+    }
+  });
 }
 
 function burstConfetti(count) {

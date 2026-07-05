@@ -719,6 +719,18 @@ a {
   object-fit: cover;
 }
 
+.media-status {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.media-status-card {
+  margin-bottom: 12px;
+}
+
 .location-layout {
   grid-template-columns: 1fr;
   align-items: stretch;
